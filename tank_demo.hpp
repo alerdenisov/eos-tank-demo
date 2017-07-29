@@ -18,30 +18,43 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <tank_demo/position_math.hpp>
 #include <eoslib/eos.hpp>
 #include <eoslib/token.hpp>
 #include <eoslib/db.hpp>
+#include <stdlib.h>
 
 namespace TankDemo
 {
+const int32_t MIN_WORLD_COORD = -350;
+const int32_t MAX_WORLD_COORD =  350;
 
-const uint8_t MAX_POINT_RECOVER = 3;
-const uint8_t INITIAL_LIVES = 3;
+const int32_t BASE_SHOT_DISTANCE = 2;
+
+const uint32_t MAX_POINT_RECOVER = 3;
+const uint32_t INITIAL_LIVES = 3;
 
 struct Tank
 {
+  Tank() {}
   Tank(
-    int32_t x = 0, int32_t y = 0,
+    int32_t x, int32_t y,
     uint32_t lives = INITIAL_LIVES,
     uint32_t p = MAX_POINT_RECOVER)
     :points(p)
     ,x(x)
     ,y(y)
-    ,lives(lives) {}
+    ,lives(lives)
+    ,valid(1) {}
 
   // Same as key inside currency example
   // (The owner is constant because there is only one tank per account)
   const uint64_t owner = N(account);
+
+  uint8_t valid;
+
+  // 0 means tanks no in the game
+  uint8_t in_game;
 
   // Amount of points available 
   uint32_t points;
@@ -53,9 +66,9 @@ struct Tank
   int32_t x;
   int32_t y;
 
-  bool isEmpty() const { return points == 0; }
-  bool isAlive() const { return lives > 0; }
-  bool isDead()  const { return !isAlive(); }
+  bool valid()   const { return valid != 0; }
+  bool is_alive() const { return lives > 0; }
+  bool is_dead()  const { return !is_alive(); }
 
   // Do not fill more than MAX_POINT_RECOVER (more only from other tanks)
   bool isRecovered() const { return points >= MAX_POINT_RECOVER; }
@@ -78,16 +91,8 @@ struct Coordinate {
 using Tanks     = Table<N(tank), N(tank), N(account), Tank, uint64_t>;
 using Positions = Table<N(tank), N(tank), N(position), Tank, int64_t>;
 
-inline int64_t pos_to_hash(const int32_t &x, const int32_t &y) {
-  return int64_t(x) | (int64_t(y) << 32);
-}
 
-inline void hash_to_pos(int64_t hash, int32_t *x, int32_t *y) {
-  *x = int32_t(hash);
-  *y = int32_t(hash >> 32);
-}
-
-inline Tank get_at_position(int32_t x, int32_t y) 
+inline Tank get_at_position(const int32_t &x, const int32_t &y) 
 {
   Tank tank;
   int64_t hash = pos_to_hash(x, y);
