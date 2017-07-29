@@ -18,11 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <tank_demo/position_math.hpp>
+#include <tank_demo/math.hpp>
 #include <eoslib/eos.hpp>
 #include <eoslib/token.hpp>
 #include <eoslib/db.hpp>
-#include <stdlib.h>
 
 namespace TankDemo
 {
@@ -66,7 +65,7 @@ struct Tank
   int32_t x;
   int32_t y;
 
-  bool valid()   const { return valid != 0; }
+  bool is_valid() const { return valid != 0; }
   bool is_alive() const { return lives > 0; }
   bool is_dead()  const { return !is_alive(); }
 
@@ -74,8 +73,7 @@ struct Tank
   bool isRecovered() const { return points >= MAX_POINT_RECOVER; }
 };
 
-static_assert(sizeof(Tank) == sizeof(uint64_t) + 
-                              sizeof(uint32_t) * 4, "unexpected packing");
+// static_assert(sizeof(Tank) == (sizeof(uint64_t) + sizeof(uint32_t) * 4 + sizeof(uint8_t) * 2), "unexpected packing");
 
 struct Interact {
   AccountName from;

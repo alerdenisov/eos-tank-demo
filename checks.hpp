@@ -18,14 +18,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-inline void require_true(bool value) { assert(value); }
-inline void require_false(bool value) { assert(!value); }
+inline void error(bool ok, const char* str) {
+  assert(ok ? uint32_t(1) : uint32_t(0), str);
+}
+
+inline void require_true(bool value, const char* str = "incorrect data")                 { error((value), str); }
+inline void require_false(bool value, const char* str = "incorrect data")                { error((!value), str); }
 
 template<typename T>
-inline void require_less(T value, T bigger) { assert(value < bigger); }
+inline void require_less(const T &a, const T &b, const char* str = "incorrect data")     { error((a < b), str); }
+
 template<typename T>
-inline void require_not_less(T value, T smaller) { assert(value >= bigger); }
+inline void require_not_less(const T &a, const T &b, const char* str = "incorrect data") { error((a >= b), str); }
+
 template<typename T>
-inline void require_more(T value, T smaller) { assert(value > bigger); }
+inline void require_more(const T &a, const T &b, const char* str = "incorrect data")     { error((a > b), str); }
+
 template<typename T>
-inline void require_not_more(T value, T bigger) { assert(value <= bigger); }
+inline void require_not_more(const T &a, const T &b, const char* str = "incorrect data") { error((a <= b), str); }
+
+
+inline void require_ready(const TankDemo::Tank &tank) 
+{
+  require_true(tank.is_valid());
+  require_true(tank.in_game);
+  require_true(tank.is_alive());
+}

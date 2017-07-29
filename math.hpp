@@ -19,6 +19,17 @@
 // SOFTWARE.
 #include <eoslib/eos.hpp>
 
+
+template<typename T>
+inline T abs(const T& a) {
+  return a > 0 ? a : -a;
+}
+
+// template<typename T> 
+// inline T max(const T& a, const T& b) {
+//   return a > b ? a : b;
+// }
+
 inline int64_t pos_to_hash(const int32_t &x, const int32_t &y) {
   return int64_t(x) | (int64_t(y) << 32);
 }

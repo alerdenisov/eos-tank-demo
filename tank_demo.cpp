@@ -20,6 +20,7 @@
 
 #include <tank_demo/tank_demo.hpp>
 #include <tank_demo/checks.hpp>
+#include <eoslib/print.hpp>
 
 namespace TankDemo
 {
@@ -32,7 +33,7 @@ void save_tank(AccountName owner, const Tank &tank)
   Tanks::store(tank, owner);
 }
 
-void move_tank(Tank &tank, int32_t new_x, int32_t new_y) 
+void move_tank(Tank &tank, int32_t new_x, int32_t new_y)
 {
   int64_t prev_hash = pos_to_hash(tank.x, tank.y);
   Positions::remove(tank, prev_hash);
@@ -47,7 +48,7 @@ void apply_spawn_tank(const Coordinate &coordinate)
   requireAuth(coordinate.owner);
 
   auto tank = get_tank(coordinate.owner);
-  
+
   require_true(tank.valid);
   require_false(tank.in_game);
 
@@ -73,7 +74,7 @@ void apply_move_tank(const Coordinate &coordinate)
   require_ready(tank);
 
   int32_t distance = get_distance(tank.x, tank.y, coordinate.x, coordinate.y);
-  require_not_less(tank.points, distance);
+  require_not_less(int32_t(tank.points), distance);
 
   auto found = get_at_position(coordinate.x, coordinate.y);
   require_false(found.valid);
@@ -99,8 +100,8 @@ void apply_fire(const Interact &interaction)
   int32_t distance = get_distance(from.x, from.y, to.x, to.y);
 
   // Check if tank have enough points
-  int32_t required_points = max(1, distance - BASE_SHOT_DISTANCE);
-  require_not_more(, from.points);
+  int32_t required_points = max(int32_t(1), distance - BASE_SHOT_DISTANCE);
+  require_not_more(required_points, int32_t(from.points));
 
   from.points -= distance - BASE_SHOT_DISTANCE;
   to.lives -= 1;
@@ -109,7 +110,7 @@ void apply_fire(const Interact &interaction)
   save_tank(interaction.to, to);
 }
 
-// execute share trx 
+// execute share trx
 void apply_share(const Interact &interaction)
 {
   requireNotice(interaction.from, interaction.to);
@@ -122,25 +123,17 @@ void apply_share(const Interact &interaction)
   require_ready(to);
 
   // check if tank have enough points
-  require_not_less(from.points, 1);
-  
+  require_not_less(from.points, uint32_t(1));
+
   // TODO: check is distance is too far
   int32_t distance = get_distance(from.x, from.y, to.x, to.y);
-  require_not_more(distance, 3);
-  
+  require_not_more(distance, int32_t(3));
+
   from.points -= 1;
   to.points += 1;
 
   save_tank(interaction.from, from);
   save_tank(interaction.to, to);
-}
-
-// Check if tank isn't ready yet (reject trx)
-inline void require_ready(const Tank &tank) 
-{
-  require_true(tank.valid);
-  require_true(tank.in_game);
-  require_true(tank.is_alive());
 }
 }
 
@@ -149,7 +142,7 @@ using namespace TankDemo;
 extern "C" {
 void init()
 {
-  save_tank(N(tank), Tank(int32_t(0), int32_t(0));
+  save_tank(N(tank), Tank(int32_t(0), int32_t(0)));
 }
 
 /// The apply method implements the dispatch of events to this contract
